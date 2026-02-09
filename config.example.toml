@@ -1,0 +1,15 @@
+# Focus ST Telemetry Configuration
+# Copy this file to config.toml and customize as needed
+
+# Data source: "mock_ecu" for development, "obd_bridge" for production
+data_source = "mock_ecu"
+
+# Server configuration
+host = "0.0.0.0"
+port = 8000
+
+# Update rate in Hz (how often to read and broadcast data)
+update_rate = 20
+
+# Logging level: DEBUG, INFO, WARNING, ERROR
+log_level = "INFO"
