@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Focus ST Telemetry Dashboard</title>
     <style>
         * {
@@ -12,55 +14,57 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #121212;
             color: #fff;
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
+            overflow-x: hidden;
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
         }
         
         header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
         
         h1 {
-            font-size: 3em;
+            font-size: 2em;
             color: #00d4ff;
-            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
-            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            margin-bottom: 5px;
         }
         
         .subtitle {
             color: #aaa;
-            font-size: 1.2em;
+            font-size: 0.9em;
         }
         
         .status-bar {
-            background: rgba(42, 42, 42, 0.8);
-            padding: 15px 30px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            border: 1px solid rgba(0, 212, 255, 0.3);
+            background: #1e1e1e;
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
         }
         
         .status-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            font-size: 0.85em;
         }
         
         .status-indicator {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             background: #ff4444;
             animation: pulse 2s infinite;
@@ -75,51 +79,99 @@
             50% { opacity: 0.5; }
         }
         
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-        
-        .metric-card {
-            background: rgba(42, 42, 42, 0.9);
-            padding: 30px;
+        /* Main boost gauge */
+        .boost-gauge-container {
+            background: #1e1e1e;
+            padding: 20px;
             border-radius: 15px;
-            border-left: 5px solid #00d4ff;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+            border: 2px solid #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
         }
         
-        .metric-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.5);
+        .boost-label {
+            text-align: center;
+            font-size: 1.2em;
+            color: #00d4ff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
         
-        .metric-card.warning {
-            border-left-color: #ff4444;
-            background: rgba(60, 30, 30, 0.9);
+        #boostCanvas {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+        
+        .boost-value-display {
+            text-align: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-top: 10px;
+        }
+        
+        .boost-value-display.warning {
+            color: #ff4444;
             animation: warningPulse 1s infinite;
         }
         
         @keyframes warningPulse {
-            0%, 100% { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); }
-            50% { box-shadow: 0 4px 20px rgba(255, 68, 68, 0.5); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Metrics grid - CSS Grid mobile-first */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        @media (min-width: 600px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .metric-card {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #00d4ff;
+            transition: all 0.2s ease;
+        }
+        
+        .metric-card:active {
+            transform: scale(0.98);
+        }
+        
+        .metric-card.warning {
+            border-left-color: #ff4444;
+            background: #2a1a1a;
+            animation: cardWarningPulse 1.5s infinite;
+        }
+        
+        @keyframes cardWarningPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 68, 68, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(255, 68, 68, 0.6); }
         }
         
         .metric-label {
-            color: #aaa;
-            font-size: 0.9em;
+            color: #888;
+            font-size: 0.85em;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .metric-value {
-            font-size: 3.5em;
+            font-size: 2.2em;
             font-weight: bold;
             color: #00d4ff;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
         
         .metric-card.warning .metric-value {
@@ -127,76 +179,84 @@
         }
         
         .metric-unit {
-            font-size: 0.6em;
+            font-size: 0.5em;
             color: #aaa;
         }
         
         .metric-raw {
-            color: #666;
-            font-size: 0.8em;
+            color: #555;
+            font-size: 0.75em;
         }
         
         .warning-badge {
             display: inline-block;
             background: #ff4444;
             color: #fff;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.8em;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75em;
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         
         .info-panel {
-            background: rgba(42, 42, 42, 0.8);
-            padding: 25px;
-            border-radius: 10px;
-            border: 1px solid rgba(0, 212, 255, 0.3);
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
         }
         
         .info-panel h3 {
             color: #00d4ff;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            font-size: 1em;
         }
         
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
         }
         
         .info-item {
-            background: rgba(30, 30, 30, 0.5);
-            padding: 15px;
-            border-radius: 8px;
+            background: #151515;
+            padding: 10px;
+            border-radius: 6px;
         }
         
         .info-item-label {
-            color: #888;
-            font-size: 0.85em;
-            margin-bottom: 5px;
+            color: #666;
+            font-size: 0.75em;
+            margin-bottom: 3px;
         }
         
         .info-item-value {
             color: #fff;
-            font-size: 1.2em;
+            font-size: 1em;
             font-weight: bold;
         }
         
         footer {
             text-align: center;
-            margin-top: 40px;
-            color: #666;
-            font-size: 0.9em;
+            margin-top: 20px;
+            color: #444;
+            font-size: 0.75em;
+            padding: 10px;
         }
         
-        @media (max-width: 768px) {
-            h1 { font-size: 2em; }
-            .metrics-grid {
-                grid-template-columns: 1fr;
+        /* Mobile optimizations */
+        @media (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            .boost-value-display {
+                font-size: 2em;
             }
             .metric-value {
-                font-size: 2.5em;
+                font-size: 1.8em;
             }
         }
     </style>
@@ -205,7 +265,7 @@
     <div class="container">
         <header>
             <h1>🏁 Focus ST Telemetry</h1>
-            <p class="subtitle">Real-time ECU Monitoring Dashboard</p>
+            <p class="subtitle">High-Density Edge Gateway</p>
         </header>
         
         <div class="status-bar">
@@ -214,24 +274,25 @@
                 <span id="connection-text">Connecting...</span>
             </div>
             <div class="status-item">
-                <span>Update Rate: <strong id="update-rate">--</strong> Hz</span>
+                <span>Rate: <strong id="update-rate">--</strong> Hz</span>
             </div>
             <div class="status-item">
-                <span>Data Source: <strong id="data-source">--</strong></span>
+                <span>Mode: <strong id="data-source">--</strong></span>
             </div>
         </div>
         
-        <div class="metrics-grid">
-            <div class="metric-card" id="boost-card">
-                <div class="metric-label">Boost Pressure</div>
-                <div class="metric-value">
-                    <span id="boost-value">--</span>
-                    <span class="metric-unit">PSI</span>
-                </div>
-                <div class="metric-raw">Raw: <span id="boost-raw">--</span></div>
-                <div id="boost-warning" class="warning-badge" style="display: none;">⚠️ HIGH BOOST</div>
+        <!-- Canvas Boost Gauge -->
+        <div class="boost-gauge-container">
+            <div class="boost-label">Turbo Boost Pressure</div>
+            <canvas id="boostCanvas" width="300" height="300"></canvas>
+            <div class="boost-value-display" id="boost-display">
+                <span id="boost-value-main">--</span>
+                <span class="metric-unit">PSI</span>
             </div>
-            
+        </div>
+        
+        <!-- Other Metrics -->
+        <div class="metrics-grid">
             <div class="metric-card" id="oil-temp-card">
                 <div class="metric-label">Oil Temperature</div>
                 <div class="metric-value">
@@ -243,12 +304,12 @@
             </div>
             
             <div class="metric-card" id="oar-card">
-                <div class="metric-label">Oxygen/Air Ratio</div>
+                <div class="metric-label">Octane Adjusted Ratio</div>
                 <div class="metric-value">
                     <span id="oar-value">--</span>
                 </div>
-                <div class="metric-raw">Target: -1.0 ±0.3</div>
-                <div id="oar-warning" class="warning-badge" style="display: none;">⚠️ OAR DEVIATION</div>
+                <div class="metric-raw">Target: -1.0 | Alert: > -0.7</div>
+                <div id="oar-warning" class="warning-badge" style="display: none;">⚠️ OAR DRIFT</div>
             </div>
         </div>
         
@@ -256,12 +317,12 @@
             <h3>Session Information</h3>
             <div class="info-grid">
                 <div class="info-item">
-                    <div class="info-item-label">Messages Received</div>
+                    <div class="info-item-label">Messages</div>
                     <div class="info-item-value" id="message-count">0</div>
                 </div>
                 <div class="info-item">
-                    <div class="info-item-label">Session Duration</div>
-                    <div class="info-item-value" id="session-duration">00:00:00</div>
+                    <div class="info-item-label">Duration</div>
+                    <div class="info-item-value" id="session-duration">00:00</div>
                 </div>
                 <div class="info-item">
                     <div class="info-item-label">Last Update</div>
@@ -275,11 +336,139 @@
         </div>
         
         <footer>
-            <p>Focus ST Telemetry Gateway v0.1.0 | WebSocket Real-time Streaming</p>
+            <p>Focus ST Telemetry Gateway v0.1.0 | Zero-CDN Local-Only</p>
         </footer>
     </div>
     
     <script>
+        // Wake Lock API implementation
+        let wakeLock = null;
+        
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('✓ Wake Lock activated - screen will stay on');
+                    
+                    wakeLock.addEventListener('release', () => {
+                        console.log('Wake Lock released');
+                    });
+                }
+            } catch (err) {
+                console.warn('Wake Lock not supported or failed:', err);
+            }
+        }
+        
+        // Re-acquire wake lock when page becomes visible
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+        
+        // Activate wake lock on first user interaction
+        document.addEventListener('click', requestWakeLock, { once: true });
+        document.addEventListener('touchstart', requestWakeLock, { once: true });
+        
+        // Canvas Gauge Implementation
+        const canvas = document.getElementById('boostCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 120;
+        
+        function drawGauge(value) {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Boost range: -14.7 to +25 PSI
+            const minPSI = -14.7;
+            const maxPSI = 25;
+            const clampedValue = Math.max(minPSI, Math.min(maxPSI, value));
+            
+            // Calculate angle (-135° to +135° = 270° total)
+            const startAngle = -3 * Math.PI / 4;
+            const endAngle = Math.PI / 4;
+            const valueAngle = startAngle + ((clampedValue - minPSI) / (maxPSI - minPSI)) * (endAngle - startAngle + Math.PI / 2);
+            
+            // Draw background arc
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle + Math.PI / 2, false);
+            ctx.strokeStyle = '#2a2a2a';
+            ctx.lineWidth = 20;
+            ctx.stroke();
+            
+            // Draw colored arc based on value
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, startAngle, valueAngle, false);
+            
+            // Color coding: green < 15 PSI, yellow 15-20, red > 20
+            if (clampedValue < 15) {
+                ctx.strokeStyle = '#44ff44';
+            } else if (clampedValue < 20) {
+                ctx.strokeStyle = '#ffaa00';
+            } else {
+                ctx.strokeStyle = '#ff4444';
+            }
+            ctx.lineWidth = 20;
+            ctx.stroke();
+            
+            // Draw tick marks
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            for (let psi = -10; psi <= 25; psi += 5) {
+                const tickAngle = startAngle + ((psi - minPSI) / (maxPSI - minPSI)) * (endAngle - startAngle + Math.PI / 2);
+                const innerRadius = radius - 15;
+                const outerRadius = radius - 5;
+                
+                ctx.beginPath();
+                ctx.moveTo(
+                    centerX + Math.cos(tickAngle) * innerRadius,
+                    centerY + Math.sin(tickAngle) * innerRadius
+                );
+                ctx.lineTo(
+                    centerX + Math.cos(tickAngle) * outerRadius,
+                    centerY + Math.sin(tickAngle) * outerRadius
+                );
+                ctx.stroke();
+                
+                // Draw tick labels
+                ctx.fillStyle = '#888';
+                ctx.font = '10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(
+                    psi.toString(),
+                    centerX + Math.cos(tickAngle) * (innerRadius - 15),
+                    centerY + Math.sin(tickAngle) * (innerRadius - 15) + 3
+                );
+            }
+            
+            // Draw needle
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(valueAngle);
+            
+            ctx.beginPath();
+            ctx.moveTo(-5, 0);
+            ctx.lineTo(0, -radius + 10);
+            ctx.lineTo(5, 0);
+            ctx.closePath();
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            
+            // Needle center cap
+            ctx.beginPath();
+            ctx.arc(0, 0, 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#00d4ff';
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        // Initial gauge draw
+        drawGauge(0);
+        
+        // WebSocket connection
         let messageCount = 0;
         let warningCount = 0;
         let sessionStart = Date.now();
@@ -292,6 +481,7 @@
             ws.onopen = () => {
                 document.getElementById('connection-status').classList.add('connected');
                 document.getElementById('connection-text').textContent = 'Connected';
+                document.getElementById('data-source').textContent = 'Live';
                 sessionStart = Date.now();
             };
             
@@ -304,32 +494,30 @@
             ws.onerror = (error) => {
                 console.error('WebSocket error:', error);
                 document.getElementById('connection-text').textContent = 'Error';
+                document.getElementById('data-source').textContent = 'Offline';
             };
             
             ws.onclose = () => {
                 document.getElementById('connection-status').classList.remove('connected');
                 document.getElementById('connection-text').textContent = 'Disconnected';
-                // Attempt to reconnect after 3 seconds
                 setTimeout(connectWebSocket, 3000);
             };
         }
         
         function updateDashboard(data) {
-            // Reset warning count for this update
             let currentWarnings = 0;
             
-            // Update boost
-            document.getElementById('boost-value').textContent = data.boost.psi.toFixed(2);
-            document.getElementById('boost-raw').textContent = data.boost.raw.toFixed(2);
-            const boostCard = document.getElementById('boost-card');
-            const boostWarning = document.getElementById('boost-warning');
+            // Update boost gauge
+            const boostPSI = data.boost.psi;
+            drawGauge(boostPSI);
+            document.getElementById('boost-value-main').textContent = boostPSI.toFixed(2);
+            
+            const boostDisplay = document.getElementById('boost-display');
             if (data.boost.warning) {
-                boostCard.classList.add('warning');
-                boostWarning.style.display = 'inline-block';
+                boostDisplay.classList.add('warning');
                 currentWarnings++;
             } else {
-                boostCard.classList.remove('warning');
-                boostWarning.style.display = 'none';
+                boostDisplay.classList.remove('warning');
             }
             
             // Update oil temp
@@ -367,12 +555,15 @@
             document.getElementById('last-update').textContent = now.toLocaleTimeString();
             
             // Update session duration
+            updateSessionDuration();
+        }
+        
+        function updateSessionDuration() {
             const duration = Math.floor((Date.now() - sessionStart) / 1000);
-            const hours = Math.floor(duration / 3600);
-            const minutes = Math.floor((duration % 3600) / 60);
+            const minutes = Math.floor(duration / 60);
             const seconds = duration % 60;
             document.getElementById('session-duration').textContent = 
-                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
         
         // Fetch status information
@@ -393,12 +584,7 @@
         // Update session duration every second
         setInterval(() => {
             if (ws && ws.readyState === WebSocket.OPEN) {
-                const duration = Math.floor((Date.now() - sessionStart) / 1000);
-                const hours = Math.floor(duration / 3600);
-                const minutes = Math.floor((duration % 3600) / 60);
-                const seconds = duration % 60;
-                document.getElementById('session-duration').textContent = 
-                    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                updateSessionDuration();
             }
         }, 1000);
     </script>

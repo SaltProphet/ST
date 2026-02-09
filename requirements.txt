@@ -6,10 +6,11 @@ aiofiles==24.1.0
 pydantic==2.9.2
 pydantic-settings==2.5.2
 python-multipart==0.0.22
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.4.0
 passlib[bcrypt]==1.7.4
 aiosqlite==0.20.0
 python-dotenv==1.0.1
 obd==0.7.1
+pyserial==3.5
 pytest==8.3.3
 pytest-asyncio==0.24.0
