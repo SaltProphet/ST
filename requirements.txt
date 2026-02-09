@@ -11,5 +11,6 @@ passlib[bcrypt]==1.7.4
 aiosqlite==0.20.0
 python-dotenv==1.0.1
 obd==0.7.1
+pyserial==3.5
 pytest==8.3.3
 pytest-asyncio==0.24.0

@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+"""
+Focus ST Telemetry Gateway - Main Entry Point
+Raspberry Pi / ELM327 / WebSocket Edge Gateway
+"""
+
+import asyncio
+import logging
+import sys
+from contextlib import asynccontextmanager
+
+import uvicorn
+from fastapi import FastAPI
+
+from focusst_telemetry.ecu.factory import create_ecu
+from focusst_telemetry.gateway.app import TelemetryGateway
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+# Global gateway instance
+gateway_instance: TelemetryGateway = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for FastAPI app"""
+    global gateway_instance
+    
+    logger.info("=" * 60)
+    logger.info("Focus ST Telemetry Gateway - Starting")
+    logger.info("High-Density Edge Gateway for 2016 Ford Focus ST")
+    logger.info("=" * 60)
+    
+    # Create ECU with auto-detection
+    ecu = await create_ecu(device_path="/dev/rfcomm0", baudrate=38400)
+    
+    # Create gateway with 20Hz update rate for high-frequency boost monitoring
+    gateway_instance = TelemetryGateway(ecu=ecu, update_rate=20)
+    
+    # Start data streaming
+    await gateway_instance.start()
+    logger.info("✓ Gateway started - streaming at 20Hz")
+    logger.info("✓ WebSocket endpoint: ws://0.0.0.0:8000/ws")
+    logger.info("✓ Dashboard: http://0.0.0.0:8000/")
+    logger.info("=" * 60)
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down gateway...")
+    await gateway_instance.stop()
+    logger.info("✓ Gateway stopped")
+
+
+def create_app() -> FastAPI:
+    """Create and configure the FastAPI application"""
+    # Create new app with lifespan
+    app = FastAPI(
+        title="Focus ST Telemetry Gateway",
+        description="High-performance telemetry gateway for 2016 Ford Focus ST",
+        version="1.0.0",
+        lifespan=lifespan
+    )
+    
+    # Mount routes from gateway (will be added after gateway is created)
+    @app.on_event("startup")
+    async def mount_gateway_routes():
+        global gateway_instance
+        if gateway_instance:
+            # Mount the gateway's FastAPI app routes
+            app.mount("/", gateway_instance.app)
+    
+    return app
+
+
+def main():
+    """Main entry point"""
+    # Get configuration from environment or use defaults
+    host = "0.0.0.0"
+    port = 8000
+    
+    logger.info(f"Starting server on {host}:{port}")
+    
+    # Run with uvicorn
+    try:
+        uvicorn.run(
+            "run_gateway:create_app",
+            factory=True,
+            host=host,
+            port=port,
+            log_level="info",
+            access_log=True
+        )
+    except KeyboardInterrupt:
+        logger.info("\nReceived interrupt signal. Shutting down...")
+    except Exception as e:
+        logger.error(f"Fatal error: {e}", exc_info=True)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

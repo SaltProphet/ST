@@ -43,17 +43,18 @@ class PIDParser:
         """Parse Oxygen/Air Ratio
         
         OAR should be near -1.0 for proper operation.
+        Warning threshold: > -0.7 (drift from target)
         
         Args:
             raw_value: Raw OAR value
             
         Returns:
             Tuple of (oar_value, is_warning)
-            is_warning is True if OAR deviates significantly from -1.0
+            is_warning is True if OAR > -0.7 (indicating drift)
         """
         oar = raw_value
-        # Flag warning if not near -1.0 (tolerance: ±0.3)
-        is_warning = abs(oar - (-1.0)) > 0.3
+        # Flag warning if OAR > -0.7 (drift from -1.0 target)
+        is_warning = oar > -0.7
         return oar, is_warning
     
     @classmethod
