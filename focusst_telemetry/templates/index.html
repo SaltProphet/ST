@@ -315,29 +315,32 @@
         }
         
         function updateDashboard(data) {
+            // Reset warning count for this update
+            let currentWarnings = 0;
+            
             // Update boost
-            document.getElementById('boost-value').textContent = data.boost.psi;
+            document.getElementById('boost-value').textContent = data.boost.psi.toFixed(2);
             document.getElementById('boost-raw').textContent = data.boost.raw.toFixed(2);
             const boostCard = document.getElementById('boost-card');
             const boostWarning = document.getElementById('boost-warning');
             if (data.boost.warning) {
                 boostCard.classList.add('warning');
                 boostWarning.style.display = 'inline-block';
-                warningCount++;
+                currentWarnings++;
             } else {
                 boostCard.classList.remove('warning');
                 boostWarning.style.display = 'none';
             }
             
             // Update oil temp
-            document.getElementById('oil-temp-value').textContent = data.oil_temp.fahrenheit;
+            document.getElementById('oil-temp-value').textContent = data.oil_temp.fahrenheit.toFixed(1);
             document.getElementById('oil-temp-raw').textContent = data.oil_temp.raw.toFixed(2);
             const oilTempCard = document.getElementById('oil-temp-card');
             const oilTempWarning = document.getElementById('oil-temp-warning');
             if (data.oil_temp.warning) {
                 oilTempCard.classList.add('warning');
                 oilTempWarning.style.display = 'inline-block';
-                warningCount++;
+                currentWarnings++;
             } else {
                 oilTempCard.classList.remove('warning');
                 oilTempWarning.style.display = 'none';
@@ -350,7 +353,7 @@
             if (data.oar.warning) {
                 oarCard.classList.add('warning');
                 oarWarning.style.display = 'inline-block';
-                warningCount++;
+                currentWarnings++;
             } else {
                 oarCard.classList.remove('warning');
                 oarWarning.style.display = 'none';
@@ -358,7 +361,7 @@
             
             // Update info panel
             document.getElementById('message-count').textContent = messageCount;
-            document.getElementById('warning-count').textContent = warningCount;
+            document.getElementById('warning-count').textContent = currentWarnings;
             
             const now = new Date(data.timestamp * 1000);
             document.getElementById('last-update').textContent = now.toLocaleTimeString();

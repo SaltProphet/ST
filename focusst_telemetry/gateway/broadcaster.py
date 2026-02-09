@@ -2,7 +2,10 @@
 
 import asyncio
 import json
+import logging
 from typing import Set, Dict, Any
+
+logger = logging.getLogger(__name__)
 
 
 class Broadcaster:
@@ -42,7 +45,7 @@ class Broadcaster:
                     # Client is too slow, remove them
                     clients_to_remove.append(queue)
                 except Exception as e:
-                    print(f"Error broadcasting to client: {e}")
+                    logger.error(f"Error broadcasting to client: {e}")
                     clients_to_remove.append(queue)
             
             # Remove slow/failed clients

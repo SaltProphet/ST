@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 from typing import Optional
 from pathlib import Path
 
@@ -14,6 +15,8 @@ from fastapi import Request
 from ..ecu.base import ECUBase
 from ..data.parser import PIDParser
 from .broadcaster import Broadcaster
+
+logger = logging.getLogger(__name__)
 
 
 class TelemetryGateway:
@@ -76,7 +79,7 @@ class TelemetryGateway:
             except WebSocketDisconnect:
                 pass
             except Exception as e:
-                print(f"WebSocket error: {e}")
+                logger.error(f"WebSocket error: {e}")
             finally:
                 await self.broadcaster.unregister(queue)
                 
@@ -99,7 +102,7 @@ class TelemetryGateway:
                 await asyncio.sleep(interval)
                 
             except Exception as e:
-                print(f"Error in data loop: {e}")
+                logger.error(f"Error in data loop: {e}")
                 await asyncio.sleep(interval)
                 
     async def start(self):

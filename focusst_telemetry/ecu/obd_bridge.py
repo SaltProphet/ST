@@ -1,6 +1,7 @@
 """OBD-II Bluetooth Bridge implementation (stub for production use)"""
 
 import asyncio
+import time
 from typing import Dict, Any
 
 from .base import ECUBase
@@ -50,8 +51,6 @@ class OBDBridge(ECUBase):
         Returns:
             Dict with PID values matching MockECU format
         """
-        import time
-        
         # Stub: Return placeholder data
         return {
             "boost": 1014.0,
