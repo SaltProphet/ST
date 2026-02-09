@@ -195,21 +195,24 @@ class OBDBridge(ECUBase):
             # Read oil temp
             oil_temp_data = await self._read_pid("220546")
             if oil_temp_data and len(oil_temp_data) >= 2:
-                # Assume 2-byte temperature value
+                # Ford oil temp PID: Direct °F value encoded as 2-byte integer
+                # Formula: raw temperature in Fahrenheit from (A*256 + B) / 10
                 A, B = oil_temp_data[0], oil_temp_data[1]
-                oil_temp_raw = float((A * 256) + B) / 10.0  # Example conversion
+                oil_temp_raw = float((A * 256) + B) / 10.0
                 self._last_oil_temp = oil_temp_raw
             
             # Read OAR  
             oar_data = await self._read_pid("2203E8")
             if oar_data and len(oar_data) >= 2:
-                # Assume signed 16-bit value
+                # Ford OAR PID: Signed ratio value
+                # Formula: Convert 2-byte signed integer to ratio (-1.0 typical)
                 A, B = oar_data[0], oar_data[1]
                 raw_int = (A * 256) + B
-                # Convert to signed if needed
+                # Convert to signed 16-bit
                 if raw_int > 32768:
                     raw_int -= 65536
-                oar_raw = float(raw_int) / 1000.0  # Example: scale to ratio
+                # Scale to ratio (typical range: -1.5 to 0.0)
+                oar_raw = float(raw_int) / 1000.0
                 self._last_oar = oar_raw
         
         self.poll_counter += 1

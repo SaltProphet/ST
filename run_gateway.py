@@ -7,7 +7,6 @@ Raspberry Pi / ELM327 / WebSocket Edge Gateway
 import asyncio
 import logging
 import sys
-from contextlib import asynccontextmanager
 
 import uvicorn
 
@@ -24,53 +23,6 @@ logger = logging.getLogger(__name__)
 
 # Global gateway instance
 gateway: TelemetryGateway = None
-
-
-@asynccontextmanager
-async def lifespan(app):
-    """Lifespan context manager for FastAPI app"""
-    global gateway
-    
-    logger.info("=" * 60)
-    logger.info("Focus ST Telemetry Gateway - Starting")
-    logger.info("High-Density Edge Gateway for 2016 Ford Focus ST")
-    logger.info("=" * 60)
-    
-    # Create ECU with auto-detection
-    ecu = await create_ecu(device_path="/dev/rfcomm0", baudrate=38400)
-    
-    # Create gateway with 20Hz update rate for high-frequency boost monitoring
-    gateway = TelemetryGateway(ecu=ecu, update_rate=20)
-    
-    # Start data streaming
-    await gateway.start()
-    logger.info("✓ Gateway started - streaming at 20Hz")
-    logger.info("✓ WebSocket endpoint: ws://0.0.0.0:8000/ws")
-    logger.info("✓ Dashboard: http://0.0.0.0:8000/")
-    logger.info("=" * 60)
-    
-    yield
-    
-    # Shutdown
-    logger.info("Shutting down gateway...")
-    await gateway.stop()
-    logger.info("✓ Gateway stopped")
-
-
-def create_app():
-    """Create and configure the FastAPI application"""
-    from fastapi import FastAPI
-    
-    # Create gateway's app first (synchronously) 
-    # The actual ECU connection will happen in lifespan
-    app = FastAPI(
-        title="Focus ST Telemetry Gateway",
-        description="High-performance telemetry gateway for 2016 Ford Focus ST",
-        version="1.0.0",
-        lifespan=lifespan
-    )
-    
-    return app
 
 
 def main():
