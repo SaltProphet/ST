@@ -1,15 +1,86 @@
 # Focus ST Telemetry Configuration
-# Copy this file to config.toml and customize as needed
 
-# Data source: "mock_ecu" for development, "obd_bridge" for production
-data_source = "mock_ecu"
+[data_source]
+# Options: "mock_ecu" or "obd_bridge"
+type = "mock_ecu"
 
-# Server configuration
+[data_source.mock_ecu]
+# Mock ECU configuration
+enabled = true
+update_rate_hz = 20  # Target frequency for data generation
+
+[data_source.obd_bridge]
+# OBD-II Bridge configuration
+enabled = false
+port = "/dev/ttyUSB0"  # Serial port for OBD adapter
+baudrate = 38400
+protocol = "AUTO"  # OBD protocol (AUTO, ISO_15765_4_11bit_500k, etc.)
+
+[pids]
+# PID Configuration
+# Format: [pid_id, name, obd_command, conversion_formula]
+
+[[pids.list]]
+id = "2204FE"
+name = "boost"
+description = "Turbo Boost Pressure"
+unit = "psi"
+# Conversion: RawValue * 0.0145 - 14.7
+conversion_multiplier = 0.0145
+conversion_offset = -14.7
+update_rate_hz = 20  # Broadcast at 20Hz
+mock_wave_type = "sine"
+mock_frequency = 0.5  # Hz
+mock_amplitude = 10.0
+mock_offset = 5.0
+mock_noise_stddev = 0.5
+
+[[pids.list]]
+id = "220546"
+name = "oil_temp"
+description = "Engine Oil Temperature"
+unit = "°F"
+# Linear conversion
+conversion_multiplier = 1.8
+conversion_offset = 32
+update_rate_hz = 1  # Slower update rate
+mock_wave_type = "sine"
+mock_frequency = 0.1  # Hz
+mock_amplitude = 20.0
+mock_offset = 200.0
+mock_noise_stddev = 2.0
+
+[[pids.list]]
+id = "2203E8"
+name = "oar"
+description = "Octane Adjust Ratio"
+unit = "ratio"
+# No conversion needed
+conversion_multiplier = 1.0
+conversion_offset = 0.0
+update_rate_hz = 5
+mock_wave_type = "sine"
+mock_frequency = 0.2  # Hz
+mock_amplitude = 0.5
+mock_offset = 0.0
+mock_noise_stddev = 0.05
+# Warning if moves from -1.0
+warning_threshold = -1.0
+
+[gateway]
 host = "0.0.0.0"
 port = 8000
+cors_origins = ["*"]
+websocket_path = "/socket.io"
+socketio_logger = true
+socketio_engineio_logger = false
 
-# Update rate in Hz (how often to read and broadcast data)
-update_rate = 20
+[ui]
+enabled = true
+templates_dir = "templates"
+static_dir = "static"
+title = "Focus ST Telemetry Dashboard"
 
-# Logging level: DEBUG, INFO, WARNING, ERROR
-log_level = "INFO"
+[logging]
+level = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
