@@ -46,6 +46,10 @@ class GatewayConfig(BaseModel):
     port: int = 8000
     cors_origins: List[str] = ["*"]
     websocket_path: str = "/socket.io"
+    
+    # Socket.io configuration
+    socketio_logger: bool = True
+    socketio_engineio_logger: bool = False
 
 
 class UIConfig(BaseModel):

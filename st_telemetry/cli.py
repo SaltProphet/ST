@@ -11,6 +11,8 @@ import uvicorn
 from st_telemetry.config import get_config, set_config, Config
 from st_telemetry.gateway.server import create_gateway
 
+logger = logging.getLogger(__name__)
+
 
 def setup_logging(level: str):
     """Setup logging configuration."""
@@ -69,18 +71,25 @@ def start(config: Config, host, port, reload):
     # Create gateway
     gateway = create_gateway(config)
     
-    # Create uvicorn server with startup event
+    # Create startup and shutdown handlers
     async def startup():
-        await gateway.initialize()
-        await gateway.start()
+        try:
+            await gateway.initialize()
+            await gateway.start()
+        except Exception as e:
+            logger.error(f"Failed to start gateway: {e}")
+            raise
     
     async def shutdown():
-        await gateway.shutdown()
+        try:
+            await gateway.shutdown()
+        except Exception as e:
+            logger.error(f"Error during shutdown: {e}")
     
     # Add lifespan events
     @gateway.app.on_event("startup")
     async def on_startup():
-        asyncio.create_task(startup())
+        await startup()
     
     @gateway.app.on_event("shutdown")
     async def on_shutdown():

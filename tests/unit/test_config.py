@@ -61,7 +61,8 @@ mock_noise_stddev = 0.1
         assert pids[0].name == "test_pid"
         assert pids[0].conversion_multiplier == 2.0
     finally:
-        Path(config_path).unlink()
+        if Path(config_path).exists():
+            Path(config_path).unlink()
 
 
 def test_get_pid_by_name():
@@ -97,7 +98,8 @@ mock_noise_stddev = 0.5
         missing_pid = config.get_pid_by_name("nonexistent")
         assert missing_pid is None
     finally:
-        Path(config_path).unlink()
+        if Path(config_path).exists():
+            Path(config_path).unlink()
 
 
 def test_pid_config_validation():

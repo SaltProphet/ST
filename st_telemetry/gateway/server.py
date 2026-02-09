@@ -30,8 +30,8 @@ class TelemetryGateway:
         self.sio = socketio.AsyncServer(
             async_mode="asgi",
             cors_allowed_origins="*",
-            logger=config.gateway.get("socketio", {}).get("logger", True),
-            engineio_logger=config.gateway.get("socketio", {}).get("engineio_logger", False),
+            logger=config.gateway.socketio_logger,
+            engineio_logger=config.gateway.socketio_engineio_logger,
         )
         
         # Create FastAPI app

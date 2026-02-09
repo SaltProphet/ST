@@ -72,12 +72,8 @@ host = "0.0.0.0"
 port = 8000
 cors_origins = ["*"]
 websocket_path = "/socket.io"
-
-[gateway.socketio]
-async_mode = "asgi"
-cors_allowed_origins = "*"
-logger = true
-engineio_logger = false
+socketio_logger = true
+socketio_engineio_logger = false
 
 [ui]
 enabled = true
