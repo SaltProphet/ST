@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏎️ {{ title }}</h1>
+            <div class="status-bar">
+                <span id="ecu-status" class="status-indicator disconnected">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Disconnected</span>
+                </span>
+                <span class="ecu-type">Mode: <strong>{{ ecu_type.upper() }}</strong></span>
+                <button id="reconnect-btn" class="btn-reconnect">Reconnect</button>
+            </div>
+        </header>
+
+        <main class="dashboard">
+            <!-- Primary Gauges -->
+            <section class="gauge-section primary">
+                <div class="gauge-card">
+                    <div class="gauge-label">RPM</div>
+                    <div class="gauge-value" id="rpm">0</div>
+                    <div class="gauge-unit">rpm</div>
+                </div>
+                
+                <div class="gauge-card">
+                    <div class="gauge-label">Speed</div>
+                    <div class="gauge-value" id="speed">0</div>
+                    <div class="gauge-unit">mph</div>
+                </div>
+                
+                <div class="gauge-card boost">
+                    <div class="gauge-label">Boost</div>
+                    <div class="gauge-value" id="boost">0.0</div>
+                    <div class="gauge-unit">psi</div>
+                </div>
+            </section>
+
+            <!-- Engine Metrics -->
+            <section class="gauge-section secondary">
+                <div class="metric-card">
+                    <div class="metric-label">Engine Load</div>
+                    <div class="metric-value">
+                        <span id="engine-load">0</span>
+                        <span class="metric-unit">%</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Throttle</div>
+                    <div class="metric-value">
+                        <span id="throttle">0</span>
+                        <span class="metric-unit">%</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Timing</div>
+                    <div class="metric-value">
+                        <span id="timing">0</span>
+                        <span class="metric-unit">°</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">AFR</div>
+                    <div class="metric-value">
+                        <span id="afr">14.7</span>
+                        <span class="metric-unit"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Temperature Monitoring -->
+            <section class="gauge-section temps">
+                <div class="metric-card temp">
+                    <div class="metric-label">Coolant Temp</div>
+                    <div class="metric-value">
+                        <span id="coolant-temp">0</span>
+                        <span class="metric-unit">°F</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card temp">
+                    <div class="metric-label">Oil Temp</div>
+                    <div class="metric-value">
+                        <span id="oil-temp">0</span>
+                        <span class="metric-unit">°F</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card temp">
+                    <div class="metric-label">Intake Air Temp</div>
+                    <div class="metric-value">
+                        <span id="intake-temp">0</span>
+                        <span class="metric-unit">°F</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Manifold Pressure</div>
+                    <div class="metric-value">
+                        <span id="manifold-pressure">14.7</span>
+                        <span class="metric-unit">psi</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Fuel & Electrical -->
+            <section class="gauge-section auxiliary">
+                <div class="metric-card">
+                    <div class="metric-label">Fuel Level</div>
+                    <div class="metric-value">
+                        <span id="fuel-level">0</span>
+                        <span class="metric-unit">%</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Fuel Pressure</div>
+                    <div class="metric-value">
+                        <span id="fuel-pressure">0</span>
+                        <span class="metric-unit">psi</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Instant MPG</div>
+                    <div class="metric-value">
+                        <span id="mpg">0</span>
+                        <span class="metric-unit">mpg</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Battery</div>
+                    <div class="metric-value">
+                        <span id="battery">0.0</span>
+                        <span class="metric-unit">V</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Last Update: <span id="last-update">Never</span></p>
+            <p>Update Rate: <span id="update-rate">0</span> Hz</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', path='/js/telemetry.js') }}"></script>
+</body>
+</html>

@@ -1,216 +1,347 @@
-# 🏁 Focus ST Telemetry Simulation & Gateway
+# 🏎️ Focus ST Telemetry Simulation & Gateway
 
-A real-time telemetry gateway and dashboard for Ford Focus ST, supporting both development (Mock ECU) and production (OBD-II Bluetooth Bridge) data sources.
+A high-density vehicle telemetry dashboard for Ford Focus ST that supports both development (Mock ECU) and production (OBD-II Bluetooth bridge) environments.
 
-## Features
+![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-green.svg)
+![WebSockets](https://img.shields.io/badge/WebSockets-Real--time-orange.svg)
 
-- 🔌 **Pluggable Interface**: Switch between mock ECU and real OBD-II bridge via config/CLI
-- 🔄 **Real-time Streaming**: 20Hz+ updates via WebSocket
-- 🛡️ **Alert Flags**: Automatic warnings for out-of-range values
-- 🖥️ **Headless-First**: CLI-manageable, with optional web dashboard
-- 👩‍🔧 **Easy Extension**: Modular design for adding PIDs, outputs, or features
+## 🎯 Features
 
-## Tech Stack
+- **Dual ECU Support**: Seamlessly switch between Mock ECU (development) and OBD-II (production)
+- **Real-time Streaming**: WebSocket-based telemetry updates at 10Hz (configurable)
+- **High-Density Dashboard**: Monitor 16+ vehicle parameters simultaneously
+- **Focus ST Optimized**: Tailored for turbocharged EcoBoost metrics (boost pressure, AFR, temperatures)
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Low Latency**: Sub-100ms update latency for critical metrics
 
-- **Python 3.11+** (asyncio, typing)
-- **FastAPI** for gateway API
-- **WebSockets** for real-time streaming
-- **Jinja2** for HTML templates
-- **TOML** for configuration
+## 📊 Monitored Parameters
 
-## Quick Start
+### Primary Gauges
+- **RPM** (Engine Speed)
+- **Speed** (Vehicle Speed)
+- **Boost Pressure** (Turbocharger boost)
+
+### Engine Metrics
+- Engine Load (%)
+- Throttle Position (%)
+- Timing Advance (°)
+- Air/Fuel Ratio
+
+### Temperatures
+- Coolant Temperature
+- Oil Temperature
+- Intake Air Temperature
+- Manifold Pressure
+
+### Fuel & Electrical
+- Fuel Level (%)
+- Fuel Pressure (PSI)
+- Instant MPG
+- Battery Voltage
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.11 or higher
+- pip (Python package manager)
 
 ### Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/SaltProphet/ST.git
-cd ST
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/SaltProphet/ST.git
+   cd ST
+   ```
 
-# Install dependencies
-pip install -r requirements.txt
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Configure environment** (optional)
+   ```bash
+   cp .env.example .env
+   # Edit .env to configure ECU type and settings
+   ```
+
+4. **Run the application**
+   ```bash
+   python main.py
+   ```
+
+5. **Open dashboard**
+   ```
+   Navigate to: http://localhost:8000
+   ```
+
+## ⚙️ Configuration
+
+Configuration is managed through environment variables (`.env` file or system environment).
+
+### ECU Modes
+
+#### Mock ECU (Development)
+```bash
+ECU_TYPE=mock
+```
+- Simulates realistic Focus ST driving scenarios
+- Includes full driving cycle: idle → acceleration → cruise → deceleration
+- No hardware required
+- Perfect for development and testing
+
+#### OBD-II (Production)
+```bash
+ECU_TYPE=obd2
+OBD_PORT=/dev/ttyUSB0    # Leave empty for auto-detection
+OBD_BAUDRATE=38400
+```
+- Connects to real ECU via OBD-II Bluetooth/USB adapter
+- Supports ELM327-compatible adapters
+- Automatically queries supported PIDs
+
+### Performance Tuning
+
+```bash
+# Update rate (Hz)
+TELEMETRY_INTERVAL=0.1   # 10 Hz (default)
+TELEMETRY_INTERVAL=0.05  # 20 Hz (higher frequency)
+
+# Server configuration
+HOST=0.0.0.0
+PORT=8000
 ```
 
-### Running the Gateway
+## 🏗️ Architecture
 
-```bash
-# Run with mock ECU (development)
-python main.py --data_source mock_ecu
-
-# Run with OBD-II bridge (production - stub)
-python main.py --data_source obd_bridge
-
-# Custom host and port
-python main.py --host 0.0.0.0 --port 8080
-
-# Using config file
-python main.py --config config.toml
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Web Browser                            │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  Dashboard UI (Jinja2 + HTML5 + CSS3)             │    │
+│  │  - Real-time gauges                                │    │
+│  │  - WebSocket client                                │    │
+│  └────────────────────────────────────────────────────┘    │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ WebSocket (ws://)
+                       │
+┌──────────────────────▼──────────────────────────────────────┐
+│              FastAPI Server (Python)                         │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  API Routes                                        │    │
+│  │  - /               → Dashboard HTML                │    │
+│  │  - /ws/telemetry   → WebSocket stream             │    │
+│  │  - /api/status     → ECU status                    │    │
+│  │  - /api/reconnect  → Manual reconnection           │    │
+│  └────────────────────────────────────────────────────┘    │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │  ECU Factory (Strategy Pattern)                   │    │
+│  │  - Creates appropriate ECU instance                │    │
+│  └─────────┬──────────────────────┬────────────────────┘    │
+└────────────┼──────────────────────┼─────────────────────────┘
+             │                      │
+   ┌─────────▼─────────┐  ┌────────▼──────────┐
+   │   Mock ECU       │  │  OBD-II Bridge    │
+   │                   │  │                   │
+   │ - Simulates       │  │ - python-obd      │
+   │   telemetry       │  │ - ELM327          │
+   │ - Driving cycles  │  │ - Real ECU        │
+   └───────────────────┘  └─────────┬─────────┘
+                                    │
+                          ┌─────────▼─────────┐
+                          │  Bluetooth/USB    │
+                          │  OBD-II Adapter   │
+                          │  (ELM327)         │
+                          └─────────┬─────────┘
+                                    │
+                          ┌─────────▼─────────┐
+                          │   Vehicle ECU     │
+                          │  (Focus ST)       │
+                          └───────────────────┘
 ```
 
-### Accessing the Dashboard
+## 🛠️ Tech Stack
 
-Once running, open your browser to:
-- **Dashboard**: http://localhost:8000
-- **WebSocket**: ws://localhost:8000/ws
-- **API Status**: http://localhost:8000/api/status
+- **Backend**: FastAPI (Python 3.11+)
+- **WebSockets**: Real-time bidirectional communication
+- **Templates**: Jinja2
+- **OBD-II**: python-obd library
+- **Async**: asyncio for concurrent operations
+- **Configuration**: pydantic-settings
 
-## Architecture
+## 📱 Dashboard Features
+
+### Visual Indicators
+- **Connection Status**: Real-time ECU connection indicator
+- **Warning States**: Automatic highlighting of critical values
+  - High coolant temp (>220°F)
+  - High oil temp (>280°F)
+  - Voltage anomalies (<12V or >15V)
+  - Excessive boost (>22 PSI)
+
+### Real-time Updates
+- **10Hz default update rate** (100ms refresh)
+- **Sub-100ms latency** from ECU to browser
+- **Update rate monitor** shows actual Hz
+
+### Responsive Design
+- Adapts to desktop, tablet, and mobile screens
+- Touch-friendly controls
+- High-contrast, motorsport-inspired theme
+
+## 🔧 Development
 
 ### Project Structure
-
 ```
-focusst_telemetry/
-├── main.py                # Entry point with CLI
-├── config.py              # Configuration handling
-├── ecu/
-│   ├── base.py            # Abstract base class for ECU sources
-│   ├── mock.py            # Mock ECU simulation
-│   └── obd_bridge.py      # OBD-II bridge (stub)
-├── gateway/
-│   ├── app.py             # FastAPI application
-│   └── broadcaster.py     # WebSocket broadcaster
-├── data/
-│   └── parser.py          # PID parsing and transformations
-├── templates/
-│   └── index.html         # Web dashboard
-└── static/                # Static assets (optional)
-```
-
-### Monitored PIDs
-
-| PID | Name | Raw Value | Conversion | Warning Threshold |
-|-----|------|-----------|------------|-------------------|
-| 0x2204FE | Boost Pressure | Raw ADC | `PSI = raw * 0.0145 - 14.7` | > 20 PSI |
-| 0x220546 | Oil Temperature | Degrees F | Direct | < 160°F or > 240°F |
-| 0x2203E8 | O₂/Air Ratio | Ratio | Direct | Not near -1.0 (±0.3) |
-
-## Configuration
-
-### Via TOML File
-
-Create `config.toml`:
-
-```toml
-data_source = "mock_ecu"  # or "obd_bridge"
-host = "0.0.0.0"
-port = 8000
-update_rate = 20  # Hz
-log_level = "INFO"
+ST/
+├── main.py                 # Application entry point
+├── requirements.txt        # Python dependencies
+├── .env.example           # Configuration template
+├── src/
+│   ├── api/
+│   │   ├── __init__.py
+│   │   └── app.py         # FastAPI application
+│   ├── ecu/
+│   │   ├── __init__.py
+│   │   ├── base.py        # ECU interface
+│   │   ├── mock_ecu.py    # Mock ECU implementation
+│   │   ├── obd_ecu.py     # OBD-II implementation
+│   │   └── factory.py     # ECU factory
+│   └── config.py          # Configuration management
+├── static/
+│   ├── css/
+│   │   └── style.css      # Dashboard styling
+│   └── js/
+│       └── telemetry.js   # WebSocket client
+└── templates/
+    └── index.html         # Dashboard HTML
 ```
 
-### Via Environment Variables
-
+### Running in Development Mode
 ```bash
-export DATA_SOURCE=mock_ecu
-export HOST=0.0.0.0
-export PORT=8000
-export UPDATE_RATE=20
-export LOG_LEVEL=INFO
+python main.py
+```
+The server will auto-reload on code changes.
+
+### Testing with Mock ECU
+```bash
+export ECU_TYPE=mock
 python main.py
 ```
 
-### Via CLI Arguments
-
+### Testing with Real OBD-II
 ```bash
-python main.py \
-  --data_source mock_ecu \
-  --host 0.0.0.0 \
-  --port 8000 \
-  --update_rate 20 \
-  --log_level INFO
+export ECU_TYPE=obd2
+export OBD_PORT=/dev/ttyUSB0  # or leave empty for auto-detect
+python main.py
 ```
 
-## Development
+## 🔌 Hardware Requirements (for OBD-II mode)
 
-### Mock ECU
+- **OBD-II Adapter**: ELM327-compatible Bluetooth or USB adapter
+- **Vehicle**: OBD-II compliant (2001+ for US vehicles)
+- **Recommended**: WiFi or Bluetooth OBD-II adapter for wireless connection
 
-The Mock ECU simulates realistic telemetry data:
+### Tested Adapters
+- Generic ELM327 Bluetooth adapters
+- BAFX Products Bluetooth OBD-II Scanner
+- OBDLink MX+ Bluetooth
 
-- **Boost**: Sine wave cycling between vacuum and boost with noise
-- **Oil Temp**: Slowly varying temperature (180-220°F range)
-- **OAR**: Oscillates around -1.0 with occasional disturbances
+## 📝 API Reference
 
-Perfect for development and testing without real hardware.
+### REST Endpoints
 
-### Adding New PIDs
+#### GET /
+Returns the dashboard HTML page.
 
-1. Add raw data generation in `ecu/mock.py` or `ecu/obd_bridge.py`
-2. Add parsing logic in `data/parser.py`
-3. Update web dashboard to display new data
-
-Example:
-
-```python
-# In parser.py
-@staticmethod
-def parse_coolant_temp(raw_value: float) -> Tuple[float, bool]:
-    temp_f = raw_value
-    is_warning = temp_f > 220.0
-    return temp_f, is_warning
+#### GET /api/status
+Returns ECU connection status.
+```json
+{
+  "connected": true,
+  "ecu_type": "mock",
+  "telemetry_interval": 0.1
+}
 ```
 
-## WebSocket API
+#### GET /api/telemetry
+Returns a single telemetry snapshot.
 
-### Connection
+#### POST /api/reconnect
+Attempts to reconnect to ECU.
 
-```javascript
-const ws = new WebSocket('ws://localhost:8000/ws');
+### WebSocket Endpoint
 
-ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    console.log(data);
-};
+#### WS /ws/telemetry
+Real-time telemetry streaming.
+
+**Message Types:**
+```json
+{
+  "type": "status",
+  "connected": true,
+  "ecu_type": "mock"
+}
 ```
-
-### Data Format
 
 ```json
 {
-  "timestamp": 1707457200.123,
-  "boost": {
-    "raw": 1214.5,
-    "psi": 2.89,
-    "warning": false
-  },
-  "oil_temp": {
-    "raw": 205.3,
-    "fahrenheit": 205.3,
-    "warning": false
-  },
-  "oar": {
-    "value": -0.985,
-    "warning": false
+  "type": "telemetry",
+  "data": {
+    "rpm": 3500,
+    "speed": 65,
+    "boost_pressure": 15.5,
+    ...
   }
 }
 ```
 
-## Extension Ideas
+```json
+{
+  "type": "error",
+  "message": "Connection lost"
+}
+```
 
-- 📊 Add more PIDs (coolant temp, AFR, timing, etc.)
-- 💾 Persist data to database or file
-- 📱 Build mobile-friendly responsive UI
-- 🔌 Add CAN/ISO-TP support for other vehicles
-- 📈 Add historical data visualization
-- 🚨 Configurable alert thresholds
-- 📤 Export data to CSV/JSON
+## 🐛 Troubleshooting
 
-## Production OBD-II Bridge
+### "ECU not connected" error
+- **Mock mode**: Should auto-connect. Check logs for errors.
+- **OBD-II mode**: 
+  - Verify adapter is plugged in and powered
+  - Check correct port in configuration
+  - Ensure vehicle ignition is ON
+  - Try auto-detection by leaving OBD_PORT empty
 
-The OBD-II bridge is currently a stub. To implement:
+### Slow updates / lag
+- Reduce `TELEMETRY_INTERVAL` for faster updates
+- Check network latency (for remote access)
+- Verify ECU adapter communication speed
 
-1. Install Bluetooth library (e.g., `bleak`, `pybluez`)
-2. Implement connection in `ecu/obd_bridge.py`
-3. Add ISO-TP/CAN protocol handling
-4. Map Ford-specific PIDs to OBD-II requests
+### WebSocket disconnects frequently
+- Check firewall settings
+- Verify stable connection to vehicle ECU
+- Review server logs for errors
 
-## License
+## 🤝 Contributing
 
-See LICENSE file for details.
+Contributions are welcome! Please feel free to submit issues or pull requests.
 
-## Contributing
+## 📄 License
 
-Contributions are welcome! Please feel free to submit pull requests or open issues.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **FastAPI**: Modern, fast web framework
+- **python-obd**: OBD-II communication library
+- **Focus ST Community**: For inspiration and support
+
+## 📧 Contact
+
+For questions or support, please open an issue on GitHub.
 
 ---
 
-**Built for extensibility, rapid prototyping, and production deployment.**
+**Built with ❤️ for the Focus ST community**
