@@ -1,10 +1,18 @@
 // Focus ST Telemetry Dashboard - WebSocket Client
+
+// Configuration constants
+const CONFIG = {
+    MAX_RECONNECT_ATTEMPTS: 5,
+    RECONNECT_DELAY_MS: 2000,
+    UPDATE_RATE_INTERVAL_MS: 1000
+};
+
 class TelemetryDashboard {
     constructor() {
         this.ws = null;
         this.reconnectAttempts = 0;
-        this.maxReconnectAttempts = 5;
-        this.reconnectDelay = 2000;
+        this.maxReconnectAttempts = CONFIG.MAX_RECONNECT_ATTEMPTS;
+        this.reconnectDelay = CONFIG.RECONNECT_DELAY_MS;
         this.lastUpdateTime = 0;
         this.updateCount = 0;
         this.updateRateInterval = null;
@@ -201,7 +209,7 @@ class TelemetryDashboard {
             const rate = this.updateCount - lastCount;
             this.updateElement('update-rate', rate);
             lastCount = this.updateCount;
-        }, 1000);
+        }, CONFIG.UPDATE_RATE_INTERVAL_MS);
     }
 }
 

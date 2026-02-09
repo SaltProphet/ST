@@ -62,6 +62,20 @@ class OBDII_ECU(ECUInterface):
         """Check OBD-II connection status."""
         return self._connected and self._connection is not None
     
+    def _extract_value(self, response) -> Any:
+        """
+        Extract value from OBD response.
+        
+        Args:
+            response: OBD query response
+            
+        Returns:
+            Extracted value or None
+        """
+        if response and not response.is_null():
+            return response.value.magnitude if hasattr(response.value, 'magnitude') else response.value
+        return None
+    
     def _query_command(self, cmd) -> Any:
         """Query a single OBD command."""
         if not self._connection:
@@ -69,8 +83,7 @@ class OBDII_ECU(ECUInterface):
         
         try:
             response = self._connection.query(cmd)
-            if response and not response.is_null():
-                return response.value.magnitude if hasattr(response.value, 'magnitude') else response.value
+            return self._extract_value(response)
         except Exception:
             pass
         return None
