@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>{{ title }}</h1>
+        <div class="status-indicator">
+            <span class="dot" id="status-dot"></span>
+            <span id="status-text">Connecting...</span>
+        </div>
+    </header>
+    
+    <main>
+        <div class="dashboard">
+            {% for pid in pids %}
+            <div class="gauge-card" id="card-{{ pid.name }}">
+                <div class="gauge-header">
+                    <h2>{{ pid.description }}</h2>
+                    <span class="pid-id">{{ pid.id }}</span>
+                </div>
+                <div class="gauge-body">
+                    <div class="gauge-value">
+                        <span class="value" id="value-{{ pid.name }}">--</span>
+                        <span class="unit">{{ pid.unit }}</span>
+                    </div>
+                    <div class="gauge-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Raw:</span>
+                            <span class="meta-value" id="raw-{{ pid.name }}">--</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Rate:</span>
+                            <span class="meta-value">{{ pid.update_rate_hz }}Hz</span>
+                        </div>
+                    </div>
+                    <div class="warning" id="warning-{{ pid.name }}" style="display: none;"></div>
+                </div>
+                <div class="gauge-footer">
+                    <span class="last-update" id="time-{{ pid.name }}">Never</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+    
+    <footer>
+        <p>Focus ST Telemetry Gateway v0.1.0</p>
+    </footer>
+    
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
